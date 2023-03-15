@@ -19,7 +19,7 @@ inputs:
   proxy_version:
     description: "CloudSQL Proxy Version"
     required: false
-    default: 1.21.0
+    default: 2.1.1
 
 runs:
   using: "composite"
@@ -34,11 +34,10 @@ runs:
         # start container
         docker run -d --net host --name gce-cloudsql-proxy --restart on-failure \
         -v /tmp/gce-cloudsql-proxy:/tmp/gce-cloudsql-proxy \
-        gcr.io/cloudsql-docker/gce-proxy:${{ inputs.proxy_version }} \
-        /cloud_sql_proxy \
-          -credential_file /tmp/gce-cloudsql-proxy/key.json \
-          -dir /tmp \
-          -instances=${{ inputs.instance }}=tcp:127.0.0.1:${{ inputs.port }}
+        -p 127.0.0.1:${{ inputs.port }}:${{ inputs.port }} \
+        gcr.io/cloud-sql-connectors/cloud-sql-proxy:${{ inputs.proxy_version }} \
+          --credentials-file /tmp/gce-cloudsql-proxy/key.json \
+          ${{ inputs.instance }}
 
         # wait until connections are accepted
         sleep 3
